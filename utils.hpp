@@ -8,6 +8,11 @@
 
 namespace ft
 {
+	template <bool Cond, class T = void>
+		struct enable_if {};
+	template <class T>
+		struct enable_if<true, T> { typedef T type; };
+
 	template <typename T>
 	void
 	swap(T& a, T& b)
@@ -164,111 +169,70 @@ namespace ft
 			}
 		};
 
-	struct true_type {};
-	struct false_type {};
+	template <class T, T v>
+	struct integral_constant
+	{
+		typedef T value_type;
+		static const value_type value = v;
+		typedef integral_constant<T, v> type;
+		operator value_type() const throw() { return value; }
+	};
 
-	template<typename _Tp>
-		struct is_integer
-		{
-			enum { value = 0 };
-			typedef false_type type;
-		};
+	typedef integral_constant<bool, true> true_type;
+	typedef integral_constant<bool, false> false_type;
 
-	template<>
-		struct is_integer<bool>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
+	// implementation of is_same from type_traits
+	template<class T, class U>
+		struct is_same : false_type {};
+	template<class T>
+		struct is_same<T, T> : true_type {};
 
-	template<>
-		struct is_integer<char>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
+	template <class T> struct is_integral : false_type {};
+	template <> struct is_integral<bool> : true_type {};
+	template <> struct is_integral<char> : true_type {};
+	template <> struct is_integral<wchar_t> : true_type {};
+	template <> struct is_integral<signed char> : true_type {};
+	template <> struct is_integral<short int> : true_type {};
+	template <> struct is_integral<int> : true_type {};
+	template <> struct is_integral<long int> : true_type {};
+	template <> struct is_integral<long long int> : true_type {};
+	template <> struct is_integral<unsigned char> : true_type {};
+	template <> struct is_integral<unsigned short int> : true_type {};
+	template <> struct is_integral<unsigned int> : true_type {};
+	template <> struct is_integral<unsigned long int> : true_type {};
+	template <> struct is_integral<unsigned long long int> : true_type {};
 
-	template<>
-		struct is_integer<signed char>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
+	template <class T>
+	T	*addressof(T &ref)
+	{
+		return (reinterpret_cast<T*>(&const_cast<char&>(reinterpret_cast<const volatile char&>(ref))));
+	}
 
-	template<>
-		struct is_integer<unsigned char>
+	template <class InputIterator1, class InputIterator2>
+	bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2)
+	{
+		while (first1 != last1)
 		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
+			if (!(*first1 == *first2))
+				return (false);
+			++first1;
+			++first2;
+		}
+		return (true);
+	}
 
-	template<>
-		struct is_integer<short>
+	template <class InputIterator1, class InputIterator2, class BinaryPredicate>
+	bool equal(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate pred)
+	{
+		while (first1!=last1)
 		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<unsigned short>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<int>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<unsigned int>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<long>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<unsigned long>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<long long>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
-
-	template<>
-		struct is_integer<unsigned long long>
-		{
-			enum { value = 1 };
-			typedef true_type type;
-		};
+			if (!pred(*first1,*first2))
+				return (false);
+			++first1;
+			++first2;
+		}
+		return (true);
+	}
 }
-
-# include "iterator.hpp"
-# include "pair.hpp"
-# include "binary_tree.hpp"
-# include "list.hpp"
-# include "vector.hpp"
-# include "map.hpp"
-# include "stack.hpp"
-# include "queue.hpp"
-# include "set.hpp"
-# include "multiset.hpp"
-# include "multimap.hpp"
 
 #endif

@@ -1,6 +1,9 @@
 #ifndef VECTOR_HPP
 # define VECTOR_HPP
 
+# include "iterator.hpp"
+# include "utils.hpp"
+
 namespace	ft
 {
 	template<typename _Tp, typename _Alloc>
@@ -88,10 +91,6 @@ namespace	ft
 					allocator_type	alloc;
 					
 					alloc = _M_get_Tp_allocator();
-					// if (n == 0)
-					// 	return (pointer());
-					// else
-					// 	return (alloc.allocate(n));
 					return n != 0 ? alloc.allocate(n) : pointer();
 				}
 
@@ -120,7 +119,7 @@ namespace	ft
 		class vector
 		: protected _Vector_base<T, Alloc>
 		{
-			typedef _Vector_base<T, Alloc>							_Base;
+			typedef _Vector_base<T, Alloc>							_Base;	
 
 			public:
 				typedef T											value_type;
@@ -202,6 +201,7 @@ namespace	ft
 				void swap (vector& x);
 
 				void clear (void);
+			
 
 			protected:
 				using _Base::_M_allocate;
@@ -228,26 +228,9 @@ namespace	ft
 					_M_init_range(first, last, IterCategory());
 				}
 
-				void
-				_M_init_fill(size_type n, const value_type& val)
-				{
-					pointer	cur = this->_M_impl._M_start;
-					try
-					{
-						for (;n > 0;--n, ++cur)
-							_alloc.construct(cur, val);
-						this->_M_impl._M_finish = cur;
-					}
-					catch(std::exception& e)
-					{
-						_M_deallocate(this->_M_impl._M_start, n * sizeof(val));
-						throw;
-					}
-				}
-
 				template<typename InputIterator>
 				void
-				_M_init_range(InputIterator first, InputIterator last, ft::input_iterator_tag)
+				_M_init_range(InputIterator first, InputIterator last, std::input_iterator_tag)
 				{
 					try
 					{
@@ -263,13 +246,30 @@ namespace	ft
 
 				template<typename ForwardIterator>
 				void
-				_M_init_range(ForwardIterator first, ForwardIterator last, ft::forward_iterator_tag)
+				_M_init_range(ForwardIterator first, ForwardIterator last, std::forward_iterator_tag)
 				{
 					const size_type n = ft::distance(first, last);
 		
 					this->_M_impl._M_start = this->_M_allocate(n);
 					this->_M_impl._M_end_of_storage = this->_M_impl._M_start + n;
 					_M_cpy_range(first, last);
+				}
+
+				void
+				_M_init_fill(size_type n, const value_type& val)
+				{
+					pointer	cur = this->_M_impl._M_start;
+					try
+					{
+						for (;n > 0;--n, ++cur)
+							_alloc.construct(cur, val);
+						this->_M_impl._M_finish = cur;
+					}
+					catch(std::exception& e)
+					{
+						_M_deallocate(this->_M_impl._M_start, n * sizeof(val));
+						throw;
+					}
 				}
 
 				template <typename InputIterator>
@@ -291,9 +291,9 @@ namespace	ft
 				}
 
 				void
-				_M_check_range(size_type n)
+				_M_check_range(size_type n) const
 				{
-					if (n >= size())
+					if (n >= this->size())
 						throw std::out_of_range("Index out of range");
 				}
 
@@ -314,7 +314,7 @@ namespace	ft
 
 				template <typename InputIterator>
 				void
-				_M_assign_range(InputIterator first, InputIterator last, ft::input_iterator_tag)
+				_M_assign_range(InputIterator first, InputIterator last, std::input_iterator_tag)
 				{
 					try
 					{
@@ -330,7 +330,7 @@ namespace	ft
 
 				template <typename InputIterator>
 				void
-				_M_assign_range(InputIterator first, InputIterator last, ft::forward_iterator_tag)
+				_M_assign_range(InputIterator first, InputIterator last, std::forward_iterator_tag)
 				{
 					const size_type n = ft::distance(first, last);
 		
@@ -341,6 +341,7 @@ namespace	ft
 				iterator
 				_M_insert_dispatch(iterator position, size_type n, const value_type& val, true_type)
 				{
+					long long _n = n;
 					long long pos = position.base() - this->_M_impl._M_start;
 					reserve(size() + n);
 					if (pos == static_cast<long long>(size()))
@@ -351,7 +352,7 @@ namespace	ft
 					else
 					{
 						this->_M_impl._M_finish += n;
-						for (long long i = size() - 1;i >= pos;i--)
+						for (long long i = size() - 1;i >= pos + _n;i--)
 							this->at(i) = this->at(i - n);
 						for (;n > 0;n--)
 							_alloc.construct(this->_M_impl._M_start + pos + n - 1, val);
@@ -369,7 +370,7 @@ namespace	ft
 
 				template <typename InputIterator>
 				void
-				_M_insert_range(iterator position, InputIterator first, InputIterator last, ft::input_iterator_tag)
+				_M_insert_range(iterator position, InputIterator first, InputIterator last, std::input_iterator_tag)
 				{
 					for (;first != last;first++)
 					{
@@ -380,7 +381,7 @@ namespace	ft
 
 				template <typename InputIterator>
 				void
-				_M_insert_range(iterator position, InputIterator first, InputIterator last, ft::forward_iterator_tag)
+				_M_insert_range(iterator position, InputIterator first, InputIterator last, std::forward_iterator_tag)
 				{
 					if (first != last)
 					{
@@ -388,7 +389,7 @@ namespace	ft
 						size_type pos = position.base() - this->_M_impl._M_start;
 						reserve(size() + n);
 						this->_M_impl._M_finish += n;
-						for (size_type i = size() - 1;i - n >= pos;i--)
+						for (size_type i = size() - 1; i >= pos + n;i--)
 							this->at(i) = this->at(i - n);
 						last--;
 						for (;n > 0;n--, last--)
@@ -415,7 +416,7 @@ namespace	ft
 	: _Base(alloc)
 	{
 		// Check whether it's an integral type.  If so, it's not an iterator.
-		typedef typename ft::is_integer<InputIterator>::type _Integral;
+		typedef typename ft::is_integral<InputIterator>::type _Integral;
 		_M_init_dispatch(first, last, _Integral());
 	}
 
@@ -435,7 +436,7 @@ namespace	ft
 	template <typename T, typename Alloc>
 	vector<T, Alloc>::~vector(void)
 	{
-		_alloc.destroy(this->_M_impl._M_start);
+		clear();
 	}
 
 	template <typename T, typename Alloc>
@@ -443,10 +444,7 @@ namespace	ft
 	vector<T, Alloc>::operator=	(const vector& x)
 	{
 		if (&x != this)
-		{
-			_alloc.destroy(this->_M_impl._M_start);
-			_M_cpy_range(x.begin(), x.end());
-		}
+			this->assign(x.begin(), x.end());
 		return (*this);
 	}
 
@@ -648,7 +646,7 @@ namespace	ft
 	void
 	vector<T, Alloc>::assign (InputIterator first, InputIterator last)
 	{
-		typedef typename ft::is_integer<InputIterator>::type is_int;
+		typedef typename ft::is_integral<InputIterator>::type is_int;
 		_M_assign_dispatch(first, last, is_int());
 	}
 
@@ -695,7 +693,7 @@ namespace	ft
 	void
 	vector<T, Alloc>::insert (iterator position, InputIterator first, InputIterator last)
 	{
-		typedef typename ft::is_integer<InputIterator>::type is_int;
+		typedef typename ft::is_integral<InputIterator>::type is_int;
 		_M_insert_dispatch(position, first, last, is_int());
 	}
 

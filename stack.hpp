@@ -1,11 +1,11 @@
 #ifndef STACK_HPP
 # define STACK_HPP
 
-# include <deque>
+# include "vector.hpp"
 
 namespace ft
 {
-	template<typename _Tp, typename _Sequence = std::deque<_Tp> >
+	template<typename _Tp, typename _Sequence = vector<_Tp> >
 		class stack
 		{
 			typedef typename _Sequence::value_type _Sequence_value_type;

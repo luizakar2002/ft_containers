@@ -1,14 +1,12 @@
 #ifndef ITERATOR_HPP
 # define ITERATOR_HPP
 
+# include <cstddef>
+# include <iterator>
+# include "utils.hpp"
+
 namespace	ft
 {
-	struct input_iterator_tag {};
-	struct output_iterator_tag {};
-	struct forward_iterator_tag : public input_iterator_tag {};
-	struct bidirectional_iterator_tag : public forward_iterator_tag {};
-	struct random_access_iterator_tag : public bidirectional_iterator_tag {};
-
 	template<typename _Category, typename _Tp, typename _Distance = ptrdiff_t,
 					 typename _Pointer = _Tp*, typename _Reference = _Tp&>
 		struct iterator
@@ -33,7 +31,7 @@ namespace	ft
 	template<typename _Tp>
 		struct iterator_traits<_Tp*>
 		{
-			typedef random_access_iterator_tag	iterator_category;
+			typedef std::random_access_iterator_tag	iterator_category;
 			typedef _Tp							value_type;
 			typedef ptrdiff_t					difference_type;
 			typedef _Tp*						pointer;
@@ -43,7 +41,7 @@ namespace	ft
 	template<typename _Tp>
 		struct iterator_traits<const _Tp*>
 		{
-			typedef random_access_iterator_tag	iterator_category;
+			typedef std::random_access_iterator_tag	iterator_category;
 			typedef _Tp							value_type;
 			typedef ptrdiff_t					difference_type;
 			typedef const _Tp*					pointer;
@@ -82,7 +80,7 @@ namespace	ft
 	template<typename _InputIterator>
 		typename ft::iterator_traits<_InputIterator>::difference_type
 		distance(_InputIterator first, _InputIterator last,
-							 input_iterator_tag)
+							 std::input_iterator_tag)
 		{
 			typename ft::iterator_traits<_InputIterator>::difference_type n = 0;
 			while (first != last)
@@ -96,7 +94,7 @@ namespace	ft
 	template<typename _RandomAccessIterator>
 		typename ft::iterator_traits<_RandomAccessIterator>::difference_type
 		distance(_RandomAccessIterator first, _RandomAccessIterator last,
-							 random_access_iterator_tag)
+							 std::random_access_iterator_tag)
 		{
 			return (last - first);
 		}
@@ -112,7 +110,7 @@ namespace	ft
 
 	template<typename _InputIterator, typename _Distance>
 		inline void
-		advance(_InputIterator& i, _Distance n, input_iterator_tag)
+		advance(_InputIterator& i, _Distance n, std::input_iterator_tag)
 		{
 			while (n--)
 				++i;
@@ -121,7 +119,7 @@ namespace	ft
 	template<typename _BidirectionalIterator, typename _Distance>
 		inline void
 		advance(_BidirectionalIterator& i, _Distance n,
-							bidirectional_iterator_tag)
+							std::bidirectional_iterator_tag)
 		{
 			if (n > 0)
 				while (n--)
@@ -134,7 +132,7 @@ namespace	ft
 	template<typename _RandomAccessIterator, typename _Distance>
 		inline void
 		advance(_RandomAccessIterator& i, _Distance n,
-							random_access_iterator_tag)
+							std::random_access_iterator_tag)
 		{
 			i += n;
 		}
@@ -191,7 +189,7 @@ namespace	ft
 			pointer
 			operator->	(void) const
 			{
-				return (&(operator*()));
+				return (ft::addressof(operator*()));
 			}
 
 			reverse_iterator&
@@ -404,6 +402,12 @@ namespace	ft
 			: _M_current(i)
 			{}
 
+			// Allow iterator to const_iterator conversion
+			template <typename Iter>
+				normal_iterator(const normal_iterator<Iter,
+						typename ft::enable_if<(ft::is_same<Iter, typename _Container::pointer>::value), _Container>::type>& i)
+				: _M_current(i.base()) { }
+
 			reference
 			operator*	(void) const
 			{
@@ -413,7 +417,7 @@ namespace	ft
 			pointer
 			operator->	(void) const
 			{
-				return (_M_current);
+				return (ft::addressof(operator*()));
 			}
 
 			normal_iterator&

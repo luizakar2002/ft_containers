@@ -1,5 +1,6 @@
 #ifndef TREE_CC
 # define TREE_CC
+
 # include "binary_tree.hpp"
 
 namespace ft

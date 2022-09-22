@@ -1,6 +1,8 @@
 #ifndef MAP_HPP
 # define MAP_HPP
 
+# include "binary_tree.hpp"
+
 namespace ft
 {
 	template <typename Key, typename _Tp, typename Compare = ft::less<Key>,

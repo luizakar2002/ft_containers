@@ -1,6 +1,10 @@
 #ifndef BINARY_TREE_HPP
 # define BINARY_TREE_HPP
 
+# include "iterator.hpp"
+# include "utils.hpp"
+# include "pair.hpp"
+
 namespace ft
 {
 	enum _bin_tree_color { _S_red = false, _S_black = true };
@@ -53,18 +57,6 @@ namespace ft
 		{
 			typedef _bin_tree_node<_Val>* _Link_type;
 			_Val _M_value_field;
-
-			_Val*
-			_M_valptr (void)
-			{
-				return (&_M_value_field);
-			}
-
-			const _Val*
-			_M_valptr (void) const
-			{
-				return (&_M_value_field);
-			}
 		};
 
 	_bin_tree_node_base*
@@ -86,7 +78,7 @@ namespace ft
 			typedef _Tp& reference;
 			typedef _Tp* pointer;
 
-			typedef bidirectional_iterator_tag 		iterator_category;
+			typedef std::bidirectional_iterator_tag 		iterator_category;
 			typedef ptrdiff_t						difference_type;
 
 			typedef _bin_tree_iterator<_Tp>			_Self;
@@ -105,13 +97,13 @@ namespace ft
 			reference
 			operator* (void) const
 			{
-				return (*static_cast<_Link_type>(_M_node)->_M_valptr());
+				return (static_cast<_Link_type>(_M_node)->_M_value_field);
 			}
 
 			pointer
 			operator-> (void) const
 			{
-				return (static_cast<_Link_type> (_M_node)->_M_valptr());
+				return (ft::addressof(static_cast<_Link_type>(_M_node)->_M_value_field));
 			}
 
 			_Self&
@@ -168,7 +160,7 @@ namespace ft
 
 			typedef _bin_tree_iterator<_Tp>		iterator;
 
-			typedef bidirectional_iterator_tag	iterator_category;
+			typedef std::bidirectional_iterator_tag	iterator_category;
 			typedef ptrdiff_t					difference_type;
 
 			typedef _bin_tree_const_iterator<_Tp>			_Self;
@@ -197,13 +189,13 @@ namespace ft
 			reference
 			operator* (void) const
 			{
-				return (*static_cast<_Link_type>(_M_node)->_M_valptr());
+				return (static_cast<_Link_type>(_M_node)->_M_value_field);
 			}
 
 			pointer
 			operator-> (void) const
 			{
-				return (static_cast<_Link_type>(_M_node)->_M_valptr()); }
+				return (ft::addressof(static_cast<_Link_type>(_M_node)->_M_value_field)); }
 
 			_Self&
 			operator++ (void)
@@ -417,7 +409,7 @@ namespace ft
 			{
 				try
 				{
-					get_allocator().construct(node->_M_valptr(), x);
+					get_allocator().construct(ft::addressof(node->_M_value_field), x);
 				}
 				catch(std::exception &e)
 				{
@@ -437,7 +429,7 @@ namespace ft
 			void
 			_M_destroy_node(_Link_type p)
 			{
-				get_allocator().destroy(p->_M_valptr());
+				get_allocator().destroy(ft::addressof(p->_M_value_field));
 			}
 
 			void
@@ -451,7 +443,7 @@ namespace ft
 				_Link_type
 				_M_clone_node(_Const_Link_type x, _NodeGen& node_gen)
 				{
-					_Link_type tmp = node_gen(*x->_M_valptr());
+					_Link_type tmp = node_gen(x->_M_value_field);
 					tmp->_M_color = x->_M_color;
 					tmp->_M_left = 0;
 					tmp->_M_right = 0;
@@ -563,7 +555,7 @@ namespace ft
 			static const_reference
 			_S_value(_Const_Link_type x)
 			{
-				return (*x->_M_valptr());
+				return (x->_M_value_field);
 			}
 
 			static const _Key&
@@ -599,7 +591,7 @@ namespace ft
 			static const_reference
 			_S_value(_Const_Base_ptr x)
 			{
-				return (*static_cast<_Const_Link_type>(x)->_M_valptr());
+				return (static_cast<_Const_Link_type>(x)->_M_value_field);
 			}
 
 			static const _Key&
@@ -933,8 +925,7 @@ namespace ft
 		operator==(const _bin_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>& x,
 				 const _bin_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>& y)
 		{
-			return (x.size() == y.size()
-						 && x.begin() == x.end() && x.end() == y.begin());
+			return (x.size() == y.size() && ft::equal(x.begin(), x.end(), y.begin()));
 		}
 
 	template<typename _Key, typename _Val, typename _KeyOfValue,
